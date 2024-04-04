@@ -1,4 +1,5 @@
 ﻿using FNLogs.Client.BackgroundServices;
+using FNLogs.Client.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -41,6 +42,7 @@ internal class Program
             })
             .ConfigureServices((_, services) =>
             {
+                services.AddSingleton<FNLogsApiProvider>();
                 services.AddHostedService<LogUploaderBackgroundService>();
             })
             .Build();

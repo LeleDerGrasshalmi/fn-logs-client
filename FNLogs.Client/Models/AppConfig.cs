@@ -11,4 +11,9 @@ public class AppConfig
     /// Interval in minutes
     /// </summary>
     public uint Interval { get; set; } = 15;
+
+    /// <summary>
+    /// Host of the backend, should only be changed in the config for debugging purposes
+    /// </summary>
+    public Uri ApiHost { get; set; } = new("https://fnlogs.lel3x.de");
 }

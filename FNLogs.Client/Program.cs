@@ -1,5 +1,6 @@
 ﻿using FNLogs.Client.BackgroundServices;
 using FNLogs.Client.Utils;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -38,7 +39,15 @@ internal class Program
             })
             .ConfigureLogging((hostContext, loggingBuilder) =>
             {
-                loggingBuilder.AddConsole();
+#if DEBUG
+                LogLevel level = LogLevel.Trace;
+#else
+                LogLevel level = LogLevel.Information;
+#endif
+
+                loggingBuilder
+                    .AddConsole()
+                    .SetMinimumLevel(level);
             })
             .ConfigureServices((_, services) =>
             {

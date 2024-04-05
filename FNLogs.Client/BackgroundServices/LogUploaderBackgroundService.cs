@@ -4,6 +4,7 @@ using FNLogs.Client.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+
 using System.Diagnostics;
 using System.Net;
 using System.Security.Cryptography;
@@ -11,6 +12,7 @@ using System.Text.Json;
 
 namespace FNLogs.Client.BackgroundServices;
 
+// TODO: static log messages like we do at work - https://learn.microsoft.com/en-us/dotnet/core/extensions/logging?tabs=command-line#logging-in-a-non-trivial-app
 public class LogUploaderBackgroundService : BackgroundService
 {
     private readonly ILogger<LogUploaderBackgroundService> _logger;
@@ -56,12 +58,12 @@ public class LogUploaderBackgroundService : BackgroundService
                 }
 
                 DirectoryInfo dir = new(dirPath);
-
+                DirectoryInfo uploadedDir = new(Path.Combine(dirPath, location.UploadedDirectoryName));
                 FileInfo[] logFiles = dir.GetFiles($"{location.FileNamePrefix ?? string.Empty}*.log", SearchOption.TopDirectoryOnly);
 
                 if (logFiles.Length == 0)
                 {
-                    _logger.LogDebug("Location {path} has no files, skipping", dirPath);
+                    _logger.LogDebug("Location '{path}' has no files, skipping", dirPath);
 
                     continue;
                 }
@@ -91,6 +93,12 @@ public class LogUploaderBackgroundService : BackgroundService
 
                 cache ??= new();
 
+                // Ensure uploaded dir exists
+                if (!uploadedDir.Exists)
+                {
+                    uploadedDir.Create();
+                }
+
                 foreach (FileInfo logFile in logFiles)
                 {
                     try
@@ -116,24 +124,35 @@ public class LogUploaderBackgroundService : BackgroundService
                         _logger.LogInformation("Uploading '{path}'", logFile.FullName);
 
                         HttpResponseMessage res = await _provider.UploadLogFileAsync(logFileStream, logFile.Name, stoppingToken);
+                        string resContent = res.Content is not null
+                            ? await res.Content.ReadAsStringAsync(stoppingToken)
+                            : string.Empty;
 
                         if (res.StatusCode == HttpStatusCode.OK)
                         {
-                            cacheModified = true;
-                            cache.KnownHashes.Add(hash);
-
                             _logger.LogInformation("Uploaded '{path}' successfully", logFile.FullName);
                         }
                         else
                         {
-                            if (res.StatusCode == HttpStatusCode.BadRequest)
-                            {
-                                // Invalid file, should also not be reuploaded!
-                                cacheModified = true;
-                                cache.KnownHashes.Add(hash);
-                            }
+                            _logger.LogWarning("Uploading '{path}' failed with status {status} {statusText}: {responseText}", logFile.FullName, (int)res.StatusCode, res.ReasonPhrase ?? res.StatusCode.ToString(), resContent);
+                        }
 
-                            _logger.LogWarning("Uploading '{path}' failed with status {status} {statusText}: {responseText}", logFile.FullName, (int)res.StatusCode, res.ReasonPhrase ?? res.StatusCode.ToString(), await res.Content.ReadAsStringAsync(stoppingToken));
+                        // dispose stream, so we can move the file
+                        await logFileStream.DisposeAsync();
+
+                        // Success or Invalid Log - store result so they are not uploaded again (even if they are moved back)
+                        // also move them to the uploaded dir so they dont get deleted by the ue app
+                        if (res.StatusCode is HttpStatusCode.OK or HttpStatusCode.BadRequest)
+                        {
+                            cacheModified = true;
+                            cache.KnownHashes.Add(hash);
+
+                            string baseUploadedPath = Path.Combine(uploadedDir.FullName, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Path.GetFileNameWithoutExtension(logFile.Name)}");
+
+                            File.Move(logFile.FullName, $"{baseUploadedPath}.log");
+                            await File.WriteAllTextAsync($"{baseUploadedPath}.json", resContent, stoppingToken);
+
+                            _logger.LogInformation("Moved '{name}' into the uploaded directory at '{uploadedDir}' as '{uploadedName}'", logFile.Name, uploadedDir.FullName, Path.GetFileName(baseUploadedPath));
                         }
                     }
                     catch (Exception ex)
@@ -146,7 +165,7 @@ public class LogUploaderBackgroundService : BackgroundService
                 {
                     await File.WriteAllTextAsync(cacheFile, JsonSerializer.Serialize(cache), stoppingToken);
 
-                    _logger.LogDebug("Updated cahce for '{path}'", dirPath);
+                    _logger.LogDebug("Updated cache for '{path}'", dirPath);
                 }
             }
 

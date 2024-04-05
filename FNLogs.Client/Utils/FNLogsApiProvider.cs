@@ -1,7 +1,7 @@
 ﻿using FNLogs.Client.Models;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Net;
 
 namespace FNLogs.Client.Utils;
 
@@ -16,26 +16,31 @@ public class FNLogsApiProvider
         _logger = logger;
     }
 
-    public async Task<HttpResponseMessage> UploadLogFileAsync(Stream fileStream, string fileName, CancellationToken token)
+    public async Task<HttpResponseMessage> UploadLogFileAsync(Stream stream, string name, CancellationToken token)
     {
         // reset position, since we computed the hash before we are at the end
-        fileStream.Position = 0;
+        stream.Position = 0;
 
         using HttpClient client = new();
 
+        StreamContent fileContent = new(stream);
         MultipartFormDataContent content = new()
         {
-            { new StreamContent(fileStream), "file", fileName },
+            { fileContent, "\"file\"", $"\"{name}\"" },
         };
 
-        // TODO: fix "TypeError: Content-Disposition header in FormData part is missing a name." on Cloudflare deployment
+        // define that its plain text
+        fileContent.Headers.ContentType = new("text/plain");
 
         HttpRequestMessage req = new()
         {
             Method = HttpMethod.Post,
-            RequestUri = new Uri(Path.Combine(_apiHost.ToString(), "api/upload-log")),
+            RequestUri = new Uri(Path.Combine(_apiHost.ToString(), "api", "upload-log")),
             Content = content,
         };
+
+        // json response
+        req.Headers.Accept.Add(new("application/json"));
 
         return await client.SendAsync(req, token);
     }

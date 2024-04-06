@@ -1,0 +1,36 @@
+name: Build Project
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+env:
+  DOTNET_MAJOR_MINOR: "8.0"
+  DOTNET_CONFIGURATION: "Release"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup .NET ${{ env.DOTNET_MAJOR_MINOR }}
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "${{ env.DOTNET_MAJOR_MINOR }}.x"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration ${{ env.DOTNET_CONFIGURATION }}
+
+      - name: Upload Build Artifact(s)
+        uses: actions/upload-artifact@v4
+        with:
+          name: fn-logs-client
+          path: "FNLogs.Client/bin/${{ env.DOTNET_CONFIGURATION }}/net${{ env.DOTNET_MAJOR_MINOR }}"

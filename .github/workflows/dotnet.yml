@@ -17,7 +17,7 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup .NET ${{ env.DOTNET_MAJOR_MINOR }}
         uses: actions/setup-dotnet@v3
         with:
@@ -26,11 +26,11 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
-      - name: Build
-        run: dotnet build --no-restore --configuration ${{ env.DOTNET_CONFIGURATION }}
+      - name: Publish
+        run: dotnet publish --no-restore --configuration ${{ env.DOTNET_CONFIGURATION }} --output publish
 
       - name: Upload Build Artifact(s)
         uses: actions/upload-artifact@v4
         with:
           name: fn-logs-client
-          path: "FNLogs.Client/bin/${{ env.DOTNET_CONFIGURATION }}/net${{ env.DOTNET_MAJOR_MINOR }}"
+          path: publish

@@ -2,7 +2,14 @@
 
 This is the client for [FNLogs](https://github.com/LeleDerGrasshalmi/fn-logs), which automaticly uploads log files based on the configuration.
 
-## Requirements
+## Getting Started
+
+1. Download the built app from the latest github action run.
+2. Extract the zip content
+3. Start `FNLogs.Client.exe`
+4. (ideally) Create a shortcup for the exe in `%appdata%\Microsoft\Windows\Start Menu\Programs\Startup` so the app auto-starts on boot
+
+## Build Requirements
 
 - DotNet 8 SDK
 
@@ -14,7 +21,7 @@ dotnet build
 
 ## App Logs
 
-App Logs are located at `%localappdata%\\Logs`. The app uses Serilog for logging.
+App Logs are located at `%localappdata%\Logs`. The app uses Serilog for logging.
 
 ## App Configuration
 

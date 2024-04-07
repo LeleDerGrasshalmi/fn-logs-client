@@ -9,9 +9,19 @@ This is the client for [FNLogs](https://github.com/LeleDerGrasshalmi/fn-logs), w
 3. Start `FNLogs.Client.exe`
 4. (ideally) Create a shortcup for the exe in `%appdata%\Microsoft\Windows\Start Menu\Programs\Startup` so the app auto-starts on boot
 
-## Build Requirements
+## Requirements
+
+### User
+
+- DotNet 8 Runtime
+
+### Development
 
 - DotNet 8 SDK
+
+---
+
+https://dotnet.microsoft.com/en-us/download/dotnet/8.0
 
 ## Build
 

@@ -3,9 +3,7 @@ name: Build Project
 on:
   push:
     branches: ["master"]
-     paths:
-    - ".github/**"
-    - "FNLogs.Client/**"
+    paths: [".github/**", "FNLogs.Client/**"]
 
 env:
   DOTNET_MAJOR_MINOR: "8.0"

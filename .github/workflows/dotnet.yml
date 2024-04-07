@@ -3,9 +3,7 @@ name: Build Project
 on:
   push:
     branches: ["master"]
-  pull_request:
-    branches: ["master"]
-  paths:
+     paths:
     - ".github/**"
     - "FNLogs.Client/**"
 

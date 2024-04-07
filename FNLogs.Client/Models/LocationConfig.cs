@@ -13,7 +13,7 @@ public class LocationConfig
     public required string ProcessName { get; set; }
 
     /// <summary>
-    /// Prefix for log files, e.g. "FortniteGame" for Fortnite, very much recommended to not upload non UE logs
+    /// Prefix for log files, e.g. "FortniteGame" for Fortnite, very much recommended to not upload non UE log files
     /// </summary>
     public string? FileNamePrefix { get; set; }
 

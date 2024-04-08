@@ -31,12 +31,12 @@ dotnet build
 
 ## App Logs
 
-App Logs are located at `%localappdata%\Logs`. The app uses Serilog for logging.
+App Logs are located at `%localappdata%\FNLogs\Logs`. The app uses Serilog for logging.
 
 ## App Configuration
 
 The app is configured in `appsettings.json`, when debugging the app will always use the latest version in the project. <br/>
-When using a release build your config will be located at `%localappdata%\\appsettings.json`.
+When using a release build your config will be located at `%localappdata%\FNLogs\appsettings.json`.
 
 ### Config Format
 

@@ -146,10 +146,23 @@ public class LogUploaderBackgroundService : BackgroundService
                         {
                             cacheModified = true;
                             cache.KnownHashes.Add(hash);
+                        }
 
+                        if (res.StatusCode is HttpStatusCode.OK)
+                        {
                             string baseUploadedPath = Path.Combine(uploadedDir.FullName, $"{DateTime.Now:yyyy-MM-dd_HH-mm-ss}_{Path.GetFileNameWithoutExtension(logFile.Name)}");
 
-                            File.Move(logFile.FullName, $"{baseUploadedPath}.log");
+                            try
+                            {
+                                File.Move(logFile.FullName, $"{baseUploadedPath}.log");
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError("Unexpected exception while moving '{path}', {type}: {message}\n{stack}", logFile.FullName, ex.GetType(), ex.Message, ex.StackTrace);
+
+                                continue;
+                            }
+
                             await File.WriteAllTextAsync($"{baseUploadedPath}.json", resContent, stoppingToken);
 
                             _logger.LogInformation("Moved '{name}' into the uploaded directory at '{uploadedDir}' as '{uploadedName}'", logFile.Name, uploadedDir.FullName, Path.GetFileName(baseUploadedPath));
@@ -157,7 +170,7 @@ public class LogUploaderBackgroundService : BackgroundService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError("Unexpected exception while processing '{path}', {type}: {message}", logFile.FullName, ex.GetType(), ex.Message);
+                        _logger.LogError("Unexpected exception while processing '{path}', {type}: {message}\n{stack}", logFile.FullName, ex.GetType(), ex.Message, ex.StackTrace);
                     }
                 }
 

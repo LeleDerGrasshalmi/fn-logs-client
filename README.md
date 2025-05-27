@@ -75,4 +75,4 @@ The default shipped configuration will watch for both fortnite and epic games la
 
 Found a issue?
 
-Open a GitHub issue with enough info to reproduce the issue.
+Open a [GitHub issue](https://github.com/LeleDerGrasshalmi/fn-logs-client/issues) with enough info to reproduce the issue.
